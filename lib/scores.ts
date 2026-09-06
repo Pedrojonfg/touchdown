@@ -27,29 +27,53 @@ export function isValidScoreRow(row: ScoreRow): boolean {
   );
 }
 
-export async function fetchTopScores(
-  client: SupabaseClient,
-): Promise<StoredScore[]> {
+export type LatestScore = StoredScore & { rank: number };
+
+function nameKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/** Rows must already be ordered by score desc (then created_at asc). */
+export function uniqueBestByName(rows: StoredScore[]): StoredScore[] {
+  const seen = new Set<string>();
+  const bests: StoredScore[] = [];
+  for (const row of rows) {
+    const key = nameKey(row.name);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    bests.push(row);
+  }
+  return bests;
+}
+
+export function rankOfName(name: string, bests: StoredScore[]): number {
+  const key = nameKey(name);
+  const index = bests.findIndex((row) => nameKey(row.name) === key);
+  return index === -1 ? bests.length + 1 : index + 1;
+}
+
+export async function fetchLeaderboard(client: SupabaseClient): Promise<{
+  top: StoredScore[];
+  latest: LatestScore | null;
+}> {
+  // ponytail: booth-scale unique in JS — DISTINCT ON view if this table grows
   const { data, error } = await client
     .from("scores")
     .select("*")
     .order("score", { ascending: false })
-    .limit(10);
+    .order("created_at", { ascending: true })
+    .limit(1000);
   if (error) throw error;
-  return (data ?? []) as StoredScore[];
-}
-
-export async function fetchLatestScore(
-  client: SupabaseClient,
-): Promise<StoredScore | null> {
-  const { data, error } = await client
-    .from("scores")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as StoredScore | null) ?? null;
+  const rows = (data ?? []) as StoredScore[];
+  const bests = uniqueBestByName(rows);
+  const latest = rows.reduce<StoredScore | null>((acc, row) => {
+    if (!acc || row.created_at > acc.created_at) return row;
+    return acc;
+  }, null);
+  return {
+    top: bests.slice(0, 10),
+    latest: latest ? { ...latest, rank: rankOfName(latest.name, bests) } : null,
+  };
 }
 
 export async function insertScore(
