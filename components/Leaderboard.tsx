@@ -1,5 +1,5 @@
-import type { LatestScore } from "@/lib/scores";
 import type { StoredScore } from "@/lib/gameTypes";
+import type { LatestScore } from "@/lib/scores";
 
 function ordinal(n: number): string {
   const v = n % 100;
@@ -49,9 +49,15 @@ export function Leaderboard({
         ))}
       </ol>
       {latest ? (
-        <p className="mt-4 shrink-0 truncate font-serif text-[clamp(0.95rem,2.3vh,1.4rem)] italic text-[var(--text-primary)]">
-          Just landed: {latest.name} — {latest.score} — {ordinal(latest.rank)}
-        </p>
+        latest.outcome === "crashed" ? (
+          <p className="mt-4 shrink-0 truncate font-serif text-[clamp(0.95rem,2.3vh,1.4rem)] italic text-[var(--accent-danger)]">
+            {latest.name} just crashed their rocket.
+          </p>
+        ) : (
+          <p className="mt-4 shrink-0 truncate font-serif text-[clamp(0.95rem,2.3vh,1.4rem)] italic text-[var(--text-primary)]">
+            Just landed: {latest.name} — {latest.score} — {ordinal(latest.rank)}
+          </p>
+        )
       ) : null}
     </section>
   );

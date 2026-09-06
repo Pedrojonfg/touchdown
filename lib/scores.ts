@@ -6,12 +6,14 @@ export function buildScoreRow(input: {
   score: number;
   fuelRemaining: number;
   impactSpeed: number;
+  outcome: ScoreRow["outcome"];
 }): ScoreRow {
   return {
     name: input.name.trim(),
     score: input.score,
     fuel_remaining: input.fuelRemaining,
     impact_speed: input.impactSpeed,
+    outcome: input.outcome,
   };
 }
 
@@ -23,7 +25,8 @@ export function isValidScoreRow(row: ScoreRow): boolean {
     row.score >= 0 &&
     row.score <= 1000 &&
     row.fuel_remaining >= 0 &&
-    row.fuel_remaining <= 100
+    row.fuel_remaining <= 100 &&
+    (row.outcome === "landed" || row.outcome === "crashed")
   );
 }
 
@@ -31,6 +34,10 @@ export type LatestScore = StoredScore & { rank: number };
 
 function nameKey(name: string): string {
   return name.trim().toLowerCase();
+}
+
+export function isCrashRow(row: Pick<StoredScore, "outcome">): boolean {
+  return row.outcome === "crashed";
 }
 
 /** Rows must already be ordered by score desc (then created_at asc). */
@@ -52,6 +59,27 @@ export function rankOfName(name: string, bests: StoredScore[]): number {
   return index === -1 ? bests.length + 1 : index + 1;
 }
 
+export function boardFromRows(rows: StoredScore[]): {
+  top: StoredScore[];
+  latest: LatestScore | null;
+} {
+  const landings = rows.filter((row) => !isCrashRow(row));
+  const bests = uniqueBestByName(landings);
+  const latest = rows.reduce<StoredScore | null>((acc, row) => {
+    if (!acc || row.created_at > acc.created_at) return row;
+    return acc;
+  }, null);
+  return {
+    top: bests.slice(0, 10),
+    latest: latest
+      ? {
+          ...latest,
+          rank: isCrashRow(latest) ? 0 : rankOfName(latest.name, bests),
+        }
+      : null,
+  };
+}
+
 export async function fetchLeaderboard(client: SupabaseClient): Promise<{
   top: StoredScore[];
   latest: LatestScore | null;
@@ -64,16 +92,7 @@ export async function fetchLeaderboard(client: SupabaseClient): Promise<{
     .order("created_at", { ascending: true })
     .limit(1000);
   if (error) throw error;
-  const rows = (data ?? []) as StoredScore[];
-  const bests = uniqueBestByName(rows);
-  const latest = rows.reduce<StoredScore | null>((acc, row) => {
-    if (!acc || row.created_at > acc.created_at) return row;
-    return acc;
-  }, null);
-  return {
-    top: bests.slice(0, 10),
-    latest: latest ? { ...latest, rank: rankOfName(latest.name, bests) } : null,
-  };
+  return boardFromRows((data ?? []) as StoredScore[]);
 }
 
 export async function insertScore(

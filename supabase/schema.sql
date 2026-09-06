@@ -8,6 +8,7 @@ create table public.scores (
   score integer not null check (score >= 0 and score <= 1000),
   fuel_remaining integer not null check (fuel_remaining >= 0 and fuel_remaining <= 100),
   impact_speed numeric not null,
+  outcome text not null default 'landed' check (outcome in ('landed', 'crashed')),
   created_at timestamptz not null default now()
 );
 

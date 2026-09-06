@@ -36,6 +36,7 @@ export default function PlayPage() {
         score: nextScore,
         fuelRemaining: Math.max(0, Math.min(100, Math.round(fuelRemaining))),
         impactSpeed,
+        outcome: "landed",
       });
       const client = getSupabase();
       if (!client || !isValidScoreRow(row)) return;
@@ -48,9 +49,26 @@ export default function PlayPage() {
     [name],
   );
 
-  const onCrashed = useCallback(() => {
-    setPhase("crashed");
-  }, []);
+  const onCrashed = useCallback(
+    async (impactSpeed: number, fuelRemaining: number) => {
+      setPhase("crashed");
+      const row = buildScoreRow({
+        name,
+        score: 0,
+        fuelRemaining: Math.max(0, Math.min(100, Math.round(fuelRemaining))),
+        impactSpeed,
+        outcome: "crashed",
+      });
+      const client = getSupabase();
+      if (!client || !isValidScoreRow(row)) return;
+      try {
+        await insertScore(client, row);
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    [name],
+  );
 
   if (phase === "entering-name") return <NameForm onLaunch={launch} />;
 

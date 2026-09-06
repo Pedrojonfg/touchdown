@@ -17,6 +17,7 @@ export type ScoreRow = {
   score: number;
   fuel_remaining: number;
   impact_speed: number;
+  outcome: Contact["outcome"];
 };
 
 export type StoredScore = ScoreRow & {

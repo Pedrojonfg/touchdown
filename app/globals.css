@@ -15,7 +15,7 @@
   --bg-void: var(--ie-ocean-blue);
   --panel: var(--ie-navy-blue);
   --accent: var(--ie-sea-blue);
-  --accent-danger: var(--ie-ice-blue);
+  --accent-danger: #ff4f6d;
   --text-primary: var(--ie-ice-blue);
   --text-muted: var(--ie-sky-blue);
 }
