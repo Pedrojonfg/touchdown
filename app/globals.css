@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ie-blue: #0033A0;
+  --ie-blue-dark: #001B4D;
+  --bg-void: #05070D;
+  --panel: #0F1626;
+  --accent-amber: #FFB000;
+  --accent-danger: #FF4136;
+  --text-primary: #E8ECF5;
+  --text-muted: #7C89A6;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--bg-void);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-mono-telemetry {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
