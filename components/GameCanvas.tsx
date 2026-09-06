@@ -13,8 +13,60 @@ import {
 import type { Contact, PhysicsState } from "../lib/gameTypes";
 
 const SHIP_X = WORLD_WIDTH / 2;
+const TUTORIAL_KEY = "touchdown-tutorial";
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number };
+type TutorialStep = "hold" | "release" | "play";
+
+function tutorialPending(): boolean {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) !== "1";
+  } catch {
+    return false;
+  }
+}
+
+function markTutorialDone() {
+  try {
+    localStorage.setItem(TUTORIAL_KEY, "1");
+  } catch {
+    // ponytail: private mode — skip persist
+  }
+}
+
+function drawRocket(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  thrusting: boolean,
+) {
+  ctx.fillStyle = "#E5F6FF";
+  ctx.beginPath();
+  ctx.moveTo(x, y - 16);
+  ctx.lineTo(x + 6, y - 2);
+  ctx.lineTo(x + 6, y + 12);
+  ctx.lineTo(x + 12, y + 16);
+  ctx.lineTo(x + 6, y + 14);
+  ctx.lineTo(x + 3, y + 14);
+  ctx.lineTo(x + 3, y + 18);
+  ctx.lineTo(x - 3, y + 18);
+  ctx.lineTo(x - 3, y + 14);
+  ctx.lineTo(x - 6, y + 14);
+  ctx.lineTo(x - 12, y + 16);
+  ctx.lineTo(x - 6, y + 12);
+  ctx.lineTo(x - 6, y - 2);
+  ctx.closePath();
+  ctx.fill();
+
+  if (thrusting) {
+    ctx.fillStyle = "#47BFFF";
+    ctx.beginPath();
+    ctx.moveTo(x - 5, y + 18);
+    ctx.lineTo(x, y + 34);
+    ctx.lineTo(x + 5, y + 18);
+    ctx.fill();
+  }
+}
 
 export function GameCanvas({
   name,
@@ -34,6 +86,7 @@ export function GameCanvas({
   onLandedRef.current = onLanded;
   onCrashedRef.current = onCrashed;
   const [fuel, setFuel] = useState(MAX_FUEL);
+  const [hint, setHint] = useState<string | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -43,8 +96,16 @@ export function GameCanvas({
 
     let state: PhysicsState = initialFlight();
     let ended = false;
+    let tutorial: TutorialStep = tutorialPending() ? "hold" : "play";
     thrusting.current = false;
     setFuel(state.fuel);
+    setHint(
+      tutorial === "hold"
+        ? "Hold to thrust."
+        : attemptCount === 1
+          ? "Land gently."
+          : null,
+    );
 
     let flash = 0;
     let shake = 0;
@@ -56,6 +117,16 @@ export function GameCanvas({
 
     const setThrust = (v: boolean) => {
       thrusting.current = v;
+      if (v && tutorial === "hold") {
+        tutorial = "release";
+        setHint("Release to fall.");
+      } else if (!v && tutorial === "release") {
+        tutorial = "play";
+        markTutorialDone();
+        state = initialFlight();
+        setFuel(state.fuel);
+        setHint("Land gently.");
+      }
     };
 
     const onPointerDown = (e: PointerEvent) => {
@@ -137,22 +208,10 @@ export function GameCanvas({
       ctx.fillStyle = "#0000A0";
       ctx.fillRect(SHIP_X - 36, PAD_Y, 72, 8);
 
-      if (thrusting.current && state.fuel > 0 && !ended) {
-        ctx.fillStyle = "#47BFFF";
-        ctx.beginPath();
-        ctx.moveTo(SHIP_X - 5, state.y + 10);
-        ctx.lineTo(SHIP_X, state.y + 26);
-        ctx.lineTo(SHIP_X + 5, state.y + 10);
-        ctx.fill();
-      }
-
-      ctx.fillStyle = "#E5F6FF";
-      ctx.beginPath();
-      ctx.moveTo(SHIP_X, state.y - 14);
-      ctx.lineTo(SHIP_X + 9, state.y + 10);
-      ctx.lineTo(SHIP_X - 9, state.y + 10);
-      ctx.closePath();
-      ctx.fill();
+      const showFlame =
+        thrusting.current &&
+        (tutorial !== "play" || (state.fuel > 0 && !ended));
+      drawRocket(ctx, SHIP_X, state.y, showFlame);
 
       for (const p of particles) {
         ctx.globalAlpha = p.life;
@@ -172,7 +231,7 @@ export function GameCanvas({
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
 
-      if (!ended) {
+      if (!ended && tutorial === "play") {
         const stepped = stepPhysics(state, thrusting.current, dt);
         state = stepped.state;
         if (now - lastFuelUi > 80) {
@@ -215,7 +274,7 @@ export function GameCanvas({
     <div className="relative h-dvh w-full touch-none overflow-hidden bg-[var(--bg-void)]">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 h-full w-full"
+        className="absolute inset-0 h-full w-full object-contain"
         style={{ touchAction: "none" }}
       />
       <div className="pointer-events-none absolute left-3 top-24">
@@ -227,9 +286,9 @@ export function GameCanvas({
           {attemptCount}
         </p>
       </div>
-      {attemptCount === 1 ? (
+      {hint ? (
         <p className="pointer-events-none absolute bottom-8 left-0 right-0 text-center font-serif text-sm italic text-[var(--text-muted)]">
-          Hold to thrust. Release to fall. Land gently.
+          {hint}
         </p>
       ) : null}
     </div>
