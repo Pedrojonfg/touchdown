@@ -7,6 +7,7 @@ export const FUEL_BURN_RATE = 22;
 export const SAFE_LANDING_SPEED = 90;
 export const PAD_Y = 720;
 export const SHIP_START_Y = 80;
+export const SHIP_BOTTOM = 18;
 export const WORLD_WIDTH = 450;
 export const WORLD_HEIGHT = 800;
 
@@ -30,8 +31,8 @@ export function stepPhysics(
 
   next.y += next.vy * dt;
 
-  if (next.y >= PAD_Y) {
-    next.y = PAD_Y;
+  if (next.y + SHIP_BOTTOM >= PAD_Y) {
+    next.y = PAD_Y - SHIP_BOTTOM;
     return {
       state: next,
       contact: {

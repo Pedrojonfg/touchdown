@@ -1,4 +1,4 @@
-import { PAD_Y, WORLD_HEIGHT, WORLD_WIDTH } from "./physics";
+import { PAD_Y, SHIP_BOTTOM, WORLD_HEIGHT, WORLD_WIDTH } from "./physics";
 
 export const SHIP_X = WORLD_WIDTH / 2;
 
@@ -15,7 +15,7 @@ function hash(i: number) {
   return x - Math.floor(x);
 }
 
-const STARS = Array.from({ length: 72 }, (_, i) => ({
+const STARS = Array.from({ length: 90 }, (_, i) => ({
   x: hash(i) * WORLD_WIDTH,
   y: hash(i + 19) * (PAD_Y - 48),
   r: hash(i + 3) > 0.9 ? 1.5 : 0.55 + hash(i + 7) * 0.45,
@@ -42,8 +42,8 @@ export function drawScene(
     PAD_Y,
     220,
   );
-  haze.addColorStop(0, "rgba(0, 0, 160, 0.35)");
-  haze.addColorStop(1, "rgba(0, 0, 160, 0)");
+  haze.addColorStop(0, "rgba(150, 218, 255, 0.18)");
+  haze.addColorStop(1, "rgba(150, 218, 255, 0)");
   ctx.fillStyle = haze;
   ctx.fillRect(0, PAD_Y - 180, WORLD_WIDTH, 200);
 
@@ -94,12 +94,21 @@ function drawEarth(ctx: CanvasRenderingContext2D) {
 }
 
 function moonRidge(ctx: CanvasRenderingContext2D) {
-  ctx.quadraticCurveTo(48, PAD_Y - 22, 108, PAD_Y + 8);
-  ctx.quadraticCurveTo(148, PAD_Y + 28, SHIP_X - 48, PAD_Y + 4);
-  ctx.lineTo(SHIP_X - 38, PAD_Y);
-  ctx.lineTo(SHIP_X + 38, PAD_Y);
-  ctx.quadraticCurveTo(318, PAD_Y + 22, 372, PAD_Y - 10);
-  ctx.quadraticCurveTo(412, PAD_Y + 16, WORLD_WIDTH, PAD_Y + 12);
+  ctx.quadraticCurveTo(20, PAD_Y + 4, 40, PAD_Y + 10);
+  ctx.lineTo(58, PAD_Y + 6);
+  ctx.quadraticCurveTo(72, PAD_Y - 4, 88, PAD_Y + 8);
+  ctx.quadraticCurveTo(110, PAD_Y + 16, 128, PAD_Y + 7);
+  ctx.lineTo(148, PAD_Y + 13);
+  ctx.quadraticCurveTo(168, PAD_Y + 2, 188, PAD_Y + 8);
+  ctx.lineTo(SHIP_X - 48, PAD_Y + 3);
+  ctx.lineTo(SHIP_X - 40, PAD_Y);
+  ctx.lineTo(SHIP_X + 40, PAD_Y);
+  ctx.lineTo(SHIP_X + 52, PAD_Y + 4);
+  ctx.quadraticCurveTo(286, PAD_Y + 14, 304, PAD_Y + 6);
+  ctx.quadraticCurveTo(324, PAD_Y - 5, 344, PAD_Y + 9);
+  ctx.lineTo(366, PAD_Y + 6);
+  ctx.quadraticCurveTo(388, PAD_Y + 15, 408, PAD_Y + 8);
+  ctx.quadraticCurveTo(428, PAD_Y + 11, WORLD_WIDTH, PAD_Y + 10);
 }
 
 function moonSilhouette(ctx: CanvasRenderingContext2D) {
@@ -113,13 +122,13 @@ function moonSilhouette(ctx: CanvasRenderingContext2D) {
 
 function drawMoon(ctx: CanvasRenderingContext2D, padGlow: number) {
   moonSilhouette(ctx);
-  ctx.fillStyle = MARINE;
+  ctx.fillStyle = ICE;
   ctx.fill();
 
   ctx.save();
   moonSilhouette(ctx);
   ctx.clip();
-  ctx.fillStyle = NAVY;
+  ctx.fillStyle = SKY;
   crater(ctx, 86, PAD_Y + 38, 32, 11);
   crater(ctx, 168, PAD_Y + 52, 22, 8);
   crater(ctx, 330, PAD_Y + 42, 36, 12);
@@ -130,21 +139,16 @@ function drawMoon(ctx: CanvasRenderingContext2D, padGlow: number) {
   ctx.moveTo(0, PAD_Y + 14);
   moonRidge(ctx);
   ctx.strokeStyle = SKY;
-  ctx.globalAlpha = 0.45;
+  ctx.globalAlpha = 0.7;
   ctx.lineWidth = 1.5;
   ctx.stroke();
-  ctx.globalAlpha = 0.28;
+  ctx.globalAlpha = 0.55;
   rim(ctx, 86, PAD_Y + 38, 32, 11);
   rim(ctx, 168, PAD_Y + 52, 22, 8);
   rim(ctx, 330, PAD_Y + 42, 36, 12);
   ctx.globalAlpha = 1;
 
-  ctx.fillStyle = NAVY;
-  ctx.fillRect(SHIP_X - 36, PAD_Y - 2, 72, 8);
-
-  const glow = 8 + padGlow * 10;
-  light(ctx, SHIP_X - 30, PAD_Y + 2, glow);
-  light(ctx, SHIP_X + 30, PAD_Y + 2, glow);
+  drawPad(ctx, padGlow);
 }
 
 function crater(
@@ -171,6 +175,38 @@ function rim(
   ctx.stroke();
 }
 
+function drawPad(ctx: CanvasRenderingContext2D, padGlow: number) {
+  const x = SHIP_X;
+  const y = PAD_Y + 6;
+
+  ctx.fillStyle = SKY;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 3, 48, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = ICE;
+  ctx.beginPath();
+  ctx.ellipse(x, y, 40, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = MARINE;
+  ctx.lineWidth = 1.25;
+  ctx.beginPath();
+  ctx.ellipse(x, y, 40, 6, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(x, y, 20, 3, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = MARINE;
+  ctx.fillRect(x - 39, PAD_Y - 8, 3, 8);
+  ctx.fillRect(x + 36, PAD_Y - 8, 3, 8);
+
+  const glow = 5 + padGlow * 8;
+  light(ctx, x - 37.5, PAD_Y - 9, glow);
+  light(ctx, x + 37.5, PAD_Y - 9, glow);
+}
+
 function light(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
   g.addColorStop(0, ICE);
@@ -194,15 +230,15 @@ export function drawRocket(
     const len = 12 + 18 * flick;
     ctx.fillStyle = "rgba(71, 191, 255, 0.4)";
     ctx.beginPath();
-    ctx.moveTo(x - 8, y + 18);
-    ctx.lineTo(x, y + 18 + len + 5);
-    ctx.lineTo(x + 8, y + 18);
+    ctx.moveTo(x - 8, y + SHIP_BOTTOM);
+    ctx.lineTo(x, y + SHIP_BOTTOM + len + 5);
+    ctx.lineTo(x + 8, y + SHIP_BOTTOM);
     ctx.fill();
     ctx.fillStyle = ICE;
     ctx.beginPath();
-    ctx.moveTo(x - 4, y + 18);
-    ctx.lineTo(x, y + 18 + len * 0.68);
-    ctx.lineTo(x + 4, y + 18);
+    ctx.moveTo(x - 4, y + SHIP_BOTTOM);
+    ctx.lineTo(x, y + SHIP_BOTTOM + len * 0.68);
+    ctx.lineTo(x + 4, y + SHIP_BOTTOM);
     ctx.fill();
   }
 
@@ -214,8 +250,8 @@ export function drawRocket(
   ctx.lineTo(x + 12, y + 16);
   ctx.lineTo(x + 6, y + 14);
   ctx.lineTo(x + 3, y + 14);
-  ctx.lineTo(x + 3, y + 18);
-  ctx.lineTo(x - 3, y + 18);
+  ctx.lineTo(x + 3, y + SHIP_BOTTOM);
+  ctx.lineTo(x - 3, y + SHIP_BOTTOM);
   ctx.lineTo(x - 3, y + 14);
   ctx.lineTo(x - 6, y + 14);
   ctx.lineTo(x - 12, y + 16);
@@ -223,4 +259,7 @@ export function drawRocket(
   ctx.lineTo(x - 6, y - 2);
   ctx.closePath();
   ctx.fill();
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
 }
