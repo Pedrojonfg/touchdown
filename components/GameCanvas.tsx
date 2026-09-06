@@ -10,12 +10,20 @@ import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
 } from "../lib/physics";
+import { drawRocket, drawScene, SHIP_X } from "../lib/scene";
 import type { Contact, PhysicsState } from "../lib/gameTypes";
 
-const SHIP_X = WORLD_WIDTH / 2;
 const TUTORIAL_KEY = "touchdown-tutorial";
 
-type Particle = { x: number; y: number; vx: number; vy: number; life: number };
+type Particle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  size: number;
+  color: string;
+};
 type TutorialStep = "hold" | "release" | "play";
 
 function tutorialPending(): boolean {
@@ -34,40 +42,6 @@ function markTutorialDone() {
   }
 }
 
-function drawRocket(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  thrusting: boolean,
-) {
-  ctx.fillStyle = "#E5F6FF";
-  ctx.beginPath();
-  ctx.moveTo(x, y - 16);
-  ctx.lineTo(x + 6, y - 2);
-  ctx.lineTo(x + 6, y + 12);
-  ctx.lineTo(x + 12, y + 16);
-  ctx.lineTo(x + 6, y + 14);
-  ctx.lineTo(x + 3, y + 14);
-  ctx.lineTo(x + 3, y + 18);
-  ctx.lineTo(x - 3, y + 18);
-  ctx.lineTo(x - 3, y + 14);
-  ctx.lineTo(x - 6, y + 14);
-  ctx.lineTo(x - 12, y + 16);
-  ctx.lineTo(x - 6, y + 12);
-  ctx.lineTo(x - 6, y - 2);
-  ctx.closePath();
-  ctx.fill();
-
-  if (thrusting) {
-    ctx.fillStyle = "#47BFFF";
-    ctx.beginPath();
-    ctx.moveTo(x - 5, y + 18);
-    ctx.lineTo(x, y + 34);
-    ctx.lineTo(x + 5, y + 18);
-    ctx.fill();
-  }
-}
-
 export function GameCanvas({
   name,
   attemptCount,
@@ -77,7 +51,7 @@ export function GameCanvas({
   name: string;
   attemptCount: number;
   onLanded: (impactSpeed: number, fuelRemaining: number) => void;
-  onCrashed: () => void;
+  onCrashed: (impactSpeed: number, fuelRemaining: number) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const thrusting = useRef(false);
@@ -102,6 +76,7 @@ export function GameCanvas({
 
     let state: PhysicsState = initialFlight();
     let ended = false;
+    let outcome: Contact["outcome"] | null = null;
     let tutorial: TutorialStep = tutorialPending() ? "hold" : "play";
     thrusting.current = false;
     setFuel(state.fuel);
@@ -166,15 +141,23 @@ export function GameCanvas({
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
-    const burst = () => {
-      for (let i = 0; i < 18; i++) {
-        const a = (Math.PI * 2 * i) / 18;
+    const spawn = (
+      n: number,
+      spread: number,
+      speed: number,
+      size: number,
+      color: string,
+      life: number,
+    ) => {
+      for (let i = 0; i < n; i++) {
         particles.push({
-          x: SHIP_X,
-          y: PAD_Y - 12,
-          vx: Math.cos(a) * 80,
-          vy: Math.sin(a) * 40 - 40,
-          life: 1,
+          x: SHIP_X + (Math.random() - 0.5) * spread,
+          y: PAD_Y - 8,
+          vx: (Math.random() - 0.5) * speed,
+          vy: -20 - Math.random() * speed,
+          life,
+          size,
+          color,
         });
       }
     };
@@ -182,63 +165,92 @@ export function GameCanvas({
     const finish = (contact: Contact) => {
       if (ended) return;
       ended = true;
+      outcome = contact.outcome;
       setFuel(contact.fuelRemaining);
       if (contact.outcome === "landed") {
         flash = 1;
-        burst();
+        spawn(12, 50, 70, 2, "#96DAFF", 0.75);
       } else {
         shake = 1;
+        spawn(10, 24, 160, 2, "#96DAFF", 0.7);
+        spawn(16, 10, 260, 5, "#E5F6FF", 1.15);
+        spawn(8, 8, 220, 3, "#47BFFF", 1);
       }
-      settleTimer = window.setTimeout(() => {
-        if (contact.outcome === "landed") {
-          onLandedRef.current(contact.impactSpeed, contact.fuelRemaining);
-        } else {
-          onCrashedRef.current();
-        }
-      }, 380);
+      settleTimer = window.setTimeout(
+        () => {
+          if (contact.outcome === "landed") {
+            onLandedRef.current(contact.impactSpeed, contact.fuelRemaining);
+          } else {
+            onCrashedRef.current(contact.impactSpeed, contact.fuelRemaining);
+          }
+        },
+        contact.outcome === "landed" ? 380 : 560,
+      );
     };
 
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = WORLD_WIDTH * dpr;
-      canvas.height = WORLD_HEIGHT * dpr;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = Math.max(1, w) * dpr;
+      canvas.height = Math.max(1, h) * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
     window.addEventListener("resize", resize);
 
-    const draw = () => {
-      const ox = shake > 0 ? (Math.random() - 0.5) * 10 * shake : 0;
-      const oy = shake > 0 ? (Math.random() - 0.5) * 10 * shake : 0;
-      ctx.save();
-      ctx.translate(ox, oy);
-      ctx.fillStyle = "#000024";
-      ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    const worldFit = () => {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const scale = Math.min(w / WORLD_WIDTH, h / WORLD_HEIGHT);
+      return {
+        scale,
+        ox: (w - WORLD_WIDTH * scale) / 2,
+        oy: (h - WORLD_HEIGHT * scale) / 2,
+      };
+    };
 
-      ctx.strokeStyle = "#000083";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(40, PAD_Y);
-      ctx.lineTo(WORLD_WIDTH - 40, PAD_Y);
-      ctx.stroke();
-      ctx.fillStyle = "#0000A0";
-      ctx.fillRect(SHIP_X - 36, PAD_Y, 72, 8);
+    const draw = (now: number) => {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      ctx.fillStyle = "#000024";
+      ctx.fillRect(0, 0, w, h);
+
+      const { scale, ox, oy } = worldFit();
+      const sx = shake > 0 ? (Math.random() - 0.5) * 14 * shake : 0;
+      const sy = shake > 0 ? (Math.random() - 0.5) * 14 * shake : 0;
+      ctx.save();
+      ctx.translate(ox + sx, oy + sy);
+      ctx.scale(scale, scale);
+      drawScene(ctx, now, flash);
 
       const showFlame =
         thrusting.current &&
         (tutorial !== "play" || (state.fuel > 0 && !ended));
-      drawRocket(ctx, SHIP_X, state.y, showFlame);
+      if (outcome !== "crashed") {
+        drawRocket(ctx, SHIP_X, state.y, showFlame, now);
+      }
 
       for (const p of particles) {
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = "#47BFFF";
-        ctx.fillRect(p.x, p.y, 2, 2);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
       }
       ctx.globalAlpha = 1;
 
       if (flash > 0) {
-        ctx.fillStyle = `rgba(229, 246, 255, ${0.35 * flash})`;
-        ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+        const g = ctx.createRadialGradient(
+          SHIP_X,
+          PAD_Y,
+          8,
+          SHIP_X,
+          PAD_Y,
+          140,
+        );
+        g.addColorStop(0, `rgba(229, 246, 255, ${0.4 * flash})`);
+        g.addColorStop(1, "rgba(229, 246, 255, 0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, PAD_Y - 160, WORLD_WIDTH, 200);
       }
       ctx.restore();
     };
@@ -254,21 +266,30 @@ export function GameCanvas({
           lastFuelUi = now;
           setFuel(state.fuel);
         }
+        const nearPad = state.y > PAD_Y - 150;
+        const flaming =
+          thrusting.current && state.fuel > 0 && nearPad && particles.length < 80;
+        if (flaming) {
+          const close = 1 - (PAD_Y - state.y) / 150;
+          spawn(1, 18 + close * 24, 50 + close * 40, 1 + close, "#96DAFF", 0.4);
+        }
         if (stepped.contact) finish(stepped.contact);
       } else {
         flash = Math.max(0, flash - dt * 2.4);
-        shake = Math.max(0, shake - dt * 3);
-        particles = particles
-          .map((p) => ({
-            ...p,
-            x: p.x + p.vx * dt,
-            y: p.y + p.vy * dt,
-            life: p.life - dt * 2,
-          }))
-          .filter((p) => p.life > 0);
+        shake = Math.max(0, shake - dt * 2.2);
       }
 
-      draw();
+      particles = particles
+        .map((p) => ({
+          ...p,
+          x: p.x + p.vx * dt,
+          y: p.y + p.vy * dt,
+          vy: p.vy + 220 * dt,
+          life: p.life - dt * 1.6,
+        }))
+        .filter((p) => p.life > 0);
+
+      draw(now);
       raf = requestAnimationFrame(tick);
     };
 
@@ -290,7 +311,7 @@ export function GameCanvas({
     <div className="relative h-dvh w-full touch-none overflow-hidden bg-[var(--bg-void)]">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 h-full w-full object-contain"
+        className="absolute inset-0 h-full w-full"
         style={{ touchAction: "none" }}
       />
       <div className="pointer-events-none absolute left-3 top-24">
@@ -303,7 +324,7 @@ export function GameCanvas({
         </p>
       </div>
       {hint ? (
-        <p className="pointer-events-none absolute bottom-8 left-0 right-0 text-center font-serif text-sm italic text-[var(--text-muted)]">
+        <p className="pointer-events-none absolute bottom-28 left-0 right-0 text-center font-serif text-sm italic text-[var(--text-muted)]">
           {hint}
         </p>
       ) : null}
