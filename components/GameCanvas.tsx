@@ -23,6 +23,7 @@ type Particle = {
   life: number;
   size: number;
   color: string;
+  grav?: number;
 };
 type TutorialStep = "hold" | "release" | "play";
 
@@ -162,6 +163,22 @@ export function GameCanvas({
       }
     };
 
+    const confetti = () => {
+      const colors = ["#ffffff", "#E5F6FF", "#96DAFF", "#47BFFF"];
+      for (let i = 0; i < 22; i++) {
+        particles.push({
+          x: SHIP_X + (Math.random() - 0.5) * 40,
+          y: PAD_Y - 22,
+          vx: (Math.random() - 0.5) * 170,
+          vy: -80 - Math.random() * 110,
+          life: 1.2,
+          size: 2 + (i % 3),
+          color: colors[i % colors.length]!,
+          grav: 90,
+        });
+      }
+    };
+
     const finish = (contact: Contact) => {
       if (ended) return;
       ended = true;
@@ -169,7 +186,8 @@ export function GameCanvas({
       setFuel(contact.fuelRemaining);
       if (contact.outcome === "landed") {
         flash = 1;
-        spawn(12, 50, 70, 2, "#96DAFF", 0.75);
+        spawn(8, 36, 50, 2, "#96DAFF", 0.55);
+        confetti();
       } else {
         shake = 1;
         spawn(10, 24, 160, 2, "#96DAFF", 0.7);
@@ -184,7 +202,7 @@ export function GameCanvas({
             onCrashedRef.current(contact.impactSpeed, contact.fuelRemaining);
           }
         },
-        contact.outcome === "landed" ? 380 : 560,
+        contact.outcome === "landed" ? 900 : 560,
       );
     };
 
@@ -284,7 +302,7 @@ export function GameCanvas({
           ...p,
           x: p.x + p.vx * dt,
           y: p.y + p.vy * dt,
-          vy: p.vy + 220 * dt,
+          vy: p.vy + (p.grav ?? 220) * dt,
           life: p.life - dt * 1.6,
         }))
         .filter((p) => p.life > 0);
