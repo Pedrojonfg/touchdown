@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 export function QRCodeBlock({ url }: { url: string }) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="bg-[var(--text-primary)] p-4">
+      <div className="bg-[var(--ie-white)] p-4">
         <QRCodeSVG value={url} size={220} level="M" includeMargin={false} />
       </div>
       <p className="text-xl text-[var(--text-muted)]">Scan to play</p>

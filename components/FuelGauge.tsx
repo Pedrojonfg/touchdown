@@ -9,7 +9,7 @@ export function FuelGauge({ fuel, max = 100 }: { fuel: number; max?: number }) {
           className="absolute bottom-0 w-full"
           style={{
             height: `${ratio * 100}%`,
-            background: low ? "var(--accent-danger)" : "var(--accent-amber)",
+            background: low ? "var(--accent-danger)" : "var(--accent)",
           }}
         />
       </div>

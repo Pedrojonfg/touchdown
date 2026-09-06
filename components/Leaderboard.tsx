@@ -26,7 +26,7 @@ export function Leaderboard({
             <span className="font-mono-telemetry text-2xl text-[var(--text-muted)] md:text-4xl">
               {i + 1}. {row.name}
             </span>
-            <span className="font-mono-telemetry text-3xl text-[var(--accent-amber)] md:text-5xl">
+            <span className="font-mono-telemetry text-3xl text-[var(--accent)] md:text-5xl">
               {row.score}
             </span>
           </li>

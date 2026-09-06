@@ -125,20 +125,20 @@ export function GameCanvas({
       const oy = shake > 0 ? (Math.random() - 0.5) * 10 * shake : 0;
       ctx.save();
       ctx.translate(ox, oy);
-      ctx.fillStyle = "#05070D";
+      ctx.fillStyle = "#000024";
       ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-      ctx.strokeStyle = "#1A2744";
+      ctx.strokeStyle = "#000083";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(40, PAD_Y);
       ctx.lineTo(WORLD_WIDTH - 40, PAD_Y);
       ctx.stroke();
-      ctx.fillStyle = "#0F1626";
+      ctx.fillStyle = "#0000A0";
       ctx.fillRect(SHIP_X - 36, PAD_Y, 72, 8);
 
       if (thrusting.current && state.fuel > 0 && !ended) {
-        ctx.fillStyle = "#FFB000";
+        ctx.fillStyle = "#47BFFF";
         ctx.beginPath();
         ctx.moveTo(SHIP_X - 5, state.y + 10);
         ctx.lineTo(SHIP_X, state.y + 26);
@@ -146,7 +146,7 @@ export function GameCanvas({
         ctx.fill();
       }
 
-      ctx.fillStyle = "#E8ECF5";
+      ctx.fillStyle = "#E5F6FF";
       ctx.beginPath();
       ctx.moveTo(SHIP_X, state.y - 14);
       ctx.lineTo(SHIP_X + 9, state.y + 10);
@@ -156,13 +156,13 @@ export function GameCanvas({
 
       for (const p of particles) {
         ctx.globalAlpha = p.life;
-        ctx.fillStyle = "#FFB000";
+        ctx.fillStyle = "#47BFFF";
         ctx.fillRect(p.x, p.y, 2, 2);
       }
       ctx.globalAlpha = 1;
 
       if (flash > 0) {
-        ctx.fillStyle = `rgba(232, 236, 245, ${0.35 * flash})`;
+        ctx.fillStyle = `rgba(229, 246, 255, ${0.35 * flash})`;
         ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
       }
       ctx.restore();

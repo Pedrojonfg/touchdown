@@ -34,7 +34,7 @@ export function EndScreen({
   return (
     <div className="flex min-h-dvh flex-col justify-end bg-[var(--bg-void)] px-6 pb-16">
       <h1 className="text-5xl font-medium">Touchdown.</h1>
-      <p className="font-mono-telemetry mt-6 text-7xl text-[var(--accent-amber)]">
+      <p className="font-mono-telemetry mt-6 text-7xl text-[var(--accent)]">
         {score}
       </p>
       <p className="mt-2 text-sm text-[var(--text-muted)]">
@@ -44,7 +44,7 @@ export function EndScreen({
         {flyerUrl ? (
           <a
             href={flyerUrl}
-            className="bg-[var(--accent-amber)] px-6 py-3 text-center text-lg font-medium text-[var(--bg-void)]"
+            className="bg-[var(--accent)] px-6 py-3 text-center text-lg font-medium text-[var(--bg-void)]"
           >
             Join the Club
           </a>

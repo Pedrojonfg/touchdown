@@ -32,7 +32,7 @@ export function NameForm({ onLaunch }: { onLaunch: (name: string) => void }) {
       <button
         type="submit"
         disabled={trimmed.length < 1}
-        className="mt-8 bg-[var(--accent-amber)] px-6 py-3 text-lg font-medium text-[var(--bg-void)] disabled:opacity-40"
+        className="mt-8 bg-[var(--accent)] px-6 py-3 text-lg font-medium text-[var(--bg-void)] disabled:opacity-40"
       >
         Launch
       </button>
