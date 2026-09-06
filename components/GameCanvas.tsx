@@ -222,13 +222,13 @@ export function GameCanvas({
         <FuelGauge fuel={fuel} />
       </div>
       <div className="pointer-events-none absolute right-4 top-4 text-right">
-        <p className="text-sm text-[var(--text-muted)]">{name}</p>
-        <p className="font-mono-telemetry text-xs text-[var(--text-muted)]">
+        <p className="font-display text-sm font-semibold text-[var(--text-muted)]">{name}</p>
+        <p className="font-serif text-xs text-[var(--text-muted)]">
           {attemptCount}
         </p>
       </div>
       {attemptCount === 1 ? (
-        <p className="pointer-events-none absolute bottom-8 left-0 right-0 text-center text-sm text-[var(--text-muted)]">
+        <p className="pointer-events-none absolute bottom-8 left-0 right-0 text-center font-serif text-sm italic text-[var(--text-muted)]">
           Hold to thrust. Release to fall. Land gently.
         </p>
       ) : null}

@@ -14,7 +14,7 @@ export function EndScreen({
   if (outcome === "crashed") {
     return (
       <div className="flex min-h-dvh flex-col justify-end bg-[var(--bg-void)] px-6 pb-16">
-        <h1 className="text-5xl font-medium text-[var(--accent-danger)]">
+        <h1 className="font-display text-5xl font-extrabold text-[var(--accent-danger)]">
           Impact.
         </h1>
         <p className="mt-3 text-[var(--text-muted)]">
@@ -23,7 +23,7 @@ export function EndScreen({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-10 bg-[var(--panel)] px-6 py-3 text-lg"
+          className="font-display mt-10 bg-[var(--panel)] px-6 py-3 text-lg font-semibold"
         >
           Try Again
         </button>
@@ -33,8 +33,8 @@ export function EndScreen({
 
   return (
     <div className="flex min-h-dvh flex-col justify-end bg-[var(--bg-void)] px-6 pb-16">
-      <h1 className="text-5xl font-medium">Touchdown.</h1>
-      <p className="font-mono-telemetry mt-6 text-7xl text-[var(--accent)]">
+      <h1 className="font-display text-5xl font-extrabold">Touchdown.</h1>
+      <p className="font-serif mt-6 text-7xl text-[var(--accent)]">
         {score}
       </p>
       <p className="mt-2 text-sm text-[var(--text-muted)]">
@@ -44,7 +44,7 @@ export function EndScreen({
         {flyerUrl ? (
           <a
             href={flyerUrl}
-            className="bg-[var(--accent)] px-6 py-3 text-center text-lg font-medium text-[var(--bg-void)]"
+            className="font-display bg-[var(--accent)] px-6 py-3 text-center text-lg font-semibold text-[var(--bg-void)]"
           >
             Join the Club
           </a>
@@ -52,7 +52,7 @@ export function EndScreen({
         <button
           type="button"
           onClick={onRetry}
-          className="bg-[var(--panel)] px-6 py-3 text-lg"
+          className="font-display bg-[var(--panel)] px-6 py-3 text-lg font-semibold"
         >
           Play Again
         </button>

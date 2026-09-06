@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Space_Mono } from "next/font/google";
+import { Montserrat, PT_Serif, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const sans = Space_Grotesk({
+// ponytail: Museo Sans isn't on Google Fonts; Source Sans 3 is the IE web stand-in
+const museo = Source_Sans_3({
   subsets: ["latin"],
-  variable: "--font-sans",
+  weight: ["400", "600", "700"],
+  variable: "--font-museo",
 });
 
-const mono = Space_Mono({
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "800"],
+  variable: "--font-display",
+});
+
+const serif = PT_Serif({
   subsets: ["latin"],
   weight: ["400", "700"],
-  variable: "--font-mono",
+  style: ["normal", "italic"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -24,8 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
-      <body className="antialiased">{children}</body>
+    <html
+      lang="en"
+      className={`${museo.variable} ${montserrat.variable} ${serif.variable}`}
+    >
+      <body className={`${museo.className} antialiased`}>{children}</body>
     </html>
   );
 }

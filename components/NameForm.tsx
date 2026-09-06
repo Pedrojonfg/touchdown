@@ -17,10 +17,12 @@ export function NameForm({ onLaunch }: { onLaunch: (name: string) => void }) {
       onSubmit={submit}
       className="flex min-h-dvh flex-col justify-end bg-[var(--bg-void)] px-6 pb-16 pt-12"
     >
-      <p className="text-sm text-[var(--text-muted)]">
+      <p className="font-serif text-sm italic text-[var(--text-muted)]">
         IE Aerospace Club — Segovia
       </p>
-      <h1 className="mt-2 text-5xl font-medium tracking-tight">Touchdown</h1>
+      <h1 className="font-display mt-2 text-5xl font-extrabold tracking-tight">
+        Touchdown
+      </h1>
       <input
         value={name}
         onChange={(e) => setName(e.target.value.slice(0, 20))}
@@ -32,7 +34,7 @@ export function NameForm({ onLaunch }: { onLaunch: (name: string) => void }) {
       <button
         type="submit"
         disabled={trimmed.length < 1}
-        className="mt-8 bg-[var(--accent)] px-6 py-3 text-lg font-medium text-[var(--bg-void)] disabled:opacity-40"
+        className="font-display mt-8 bg-[var(--accent)] px-6 py-3 text-lg font-semibold text-[var(--bg-void)] disabled:opacity-40"
       >
         Launch
       </button>

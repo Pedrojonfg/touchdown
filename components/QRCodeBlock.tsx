@@ -8,7 +8,9 @@ export function QRCodeBlock({ url }: { url: string }) {
       <div className="bg-[var(--ie-white)] p-4">
         <QRCodeSVG value={url} size={220} level="M" includeMargin={false} />
       </div>
-      <p className="text-xl text-[var(--text-muted)]">Scan to play</p>
+      <p className="font-serif text-xl italic text-[var(--text-muted)]">
+        Scan to play
+      </p>
     </div>
   );
 }

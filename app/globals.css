@@ -28,9 +28,5 @@ body {
 }
 
 body {
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-}
-
-.font-mono-telemetry {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-museo), "Museo Sans", ui-sans-serif, sans-serif;
 }

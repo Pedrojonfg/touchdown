@@ -14,7 +14,7 @@ export function FuelGauge({ fuel, max = 100 }: { fuel: number; max?: number }) {
         />
       </div>
       <span
-        className="font-mono-telemetry text-[10px] tracking-wide text-[var(--text-muted)]"
+        className="font-display text-[10px] font-semibold tracking-widest text-[var(--text-muted)]"
         style={{ color: low ? "var(--accent-danger)" : undefined }}
       >
         FUEL
