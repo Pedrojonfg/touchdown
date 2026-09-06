@@ -22,7 +22,7 @@ function tutorialPending(): boolean {
   try {
     return localStorage.getItem(TUTORIAL_KEY) !== "1";
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -86,7 +86,13 @@ export function GameCanvas({
   onLandedRef.current = onLanded;
   onCrashedRef.current = onCrashed;
   const [fuel, setFuel] = useState(MAX_FUEL);
-  const [hint, setHint] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(() =>
+    tutorialPending()
+      ? "Hold to thrust."
+      : attemptCount === 1
+        ? "Land gently."
+        : null,
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -114,13 +120,23 @@ export function GameCanvas({
     let lastFuelUi = 0;
     let raf = 0;
     let settleTimer: number | undefined;
+    // Launch tap / iOS ghost click would otherwise finish the tutorial in one frame
+    let ignoreUntil = performance.now() + 500;
+    let holdStarted = 0;
 
     const setThrust = (v: boolean) => {
+      if (performance.now() < ignoreUntil) return;
       thrusting.current = v;
       if (v && tutorial === "hold") {
         tutorial = "release";
+        holdStarted = performance.now();
         setHint("Release to fall.");
       } else if (!v && tutorial === "release") {
+        if (performance.now() - holdStarted < 200) {
+          tutorial = "hold";
+          setHint("Hold to thrust.");
+          return;
+        }
         tutorial = "play";
         markTutorialDone();
         state = initialFlight();
