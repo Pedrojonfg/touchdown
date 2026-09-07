@@ -55,7 +55,10 @@ export function Leaderboard({
           </p>
         ) : (
           <p className="mt-4 shrink-0 truncate font-serif text-[clamp(0.95rem,2.3vh,1.4rem)] italic text-[var(--text-primary)]">
-            Just landed: {latest.name} — {latest.score} — {ordinal(latest.rank)}
+            Just landed: {latest.name} — {latest.score} —{" "}
+            {latest.isPersonalBest
+              ? ordinal(latest.rank)
+              : `still ${ordinal(latest.rank)}`}
           </p>
         )
       ) : null}

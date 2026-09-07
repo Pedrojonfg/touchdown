@@ -30,7 +30,10 @@ export function isValidScoreRow(row: ScoreRow): boolean {
   );
 }
 
-export type LatestScore = StoredScore & { rank: number };
+export type LatestScore = StoredScore & {
+  rank: number;
+  isPersonalBest: boolean;
+};
 
 function nameKey(name: string): string {
   return name.trim().toLowerCase();
@@ -59,6 +62,14 @@ export function rankOfName(name: string, bests: StoredScore[]): number {
   return index === -1 ? bests.length + 1 : index + 1;
 }
 
+export function isPersonalBest(
+  latest: StoredScore,
+  bests: StoredScore[],
+): boolean {
+  const best = bests.find((row) => nameKey(row.name) === nameKey(latest.name));
+  return !best || latest.score >= best.score;
+}
+
 export function boardFromRows(rows: StoredScore[]): {
   top: StoredScore[];
   latest: LatestScore | null;
@@ -75,6 +86,9 @@ export function boardFromRows(rows: StoredScore[]): {
       ? {
           ...latest,
           rank: isCrashRow(latest) ? 0 : rankOfName(latest.name, bests),
+          isPersonalBest: isCrashRow(latest)
+            ? false
+            : isPersonalBest(latest, bests),
         }
       : null,
   };
