@@ -3,6 +3,8 @@
 import { SceneBackdrop } from "./SceneBackdrop";
 
 const flyerUrl = process.env.NEXT_PUBLIC_CLUB_FLYER_URL ?? "";
+const IECONNECTS_SIGNUP_URL =
+  "https://ieconnects.ie.edu/ieaerospaceanddefenseclub/club_signup";
 
 export function EndScreen({
   outcome,
@@ -48,12 +50,20 @@ export function EndScreen({
           Landing precision + fuel remaining
         </p>
         <div className="mt-10 flex flex-col gap-3">
+          <a
+            href={IECONNECTS_SIGNUP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-display bg-[var(--accent)] px-6 py-3 text-center text-lg font-semibold text-[var(--bg-void)]"
+          >
+            IEConnects
+          </a>
           {flyerUrl ? (
             <a
               href={flyerUrl}
-              className="font-display bg-[var(--accent)] px-6 py-3 text-center text-lg font-semibold text-[var(--bg-void)]"
+              className="font-display bg-[var(--panel)] px-6 py-3 text-center text-lg font-semibold"
             >
-              Join the Club
+              Club Website
             </a>
           ) : null}
           <button
